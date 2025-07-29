@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Rally Dashboard Overview
+{% endblock %}
+
+{% block content %}
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">📊 Rally Test Dashboard</h1>
+      <a href="#" class="btn btn-primary btn-sm">
+            Get Report
+      </a>
+  </div>
+<div class="d-flex justify-content-end mb-4">
+  <form method="get" action="{{ url_for('main.dashboard') }}" class="d-flex align-items-center gap-2">
+    <div class="input-group input-group-sm" style="max-width: 220px;">
+      <span class="input-group-text bg-white border-end-0">
+        <i class="bi bi-calendar-event text-primary"></i>
+      </span>
+      <input
+        type="date"
+        name="date"
+        class="form-control shadow-sm border-start-0"
+        value="{{ selected_date }}"
+        required
+      >
+    </div>
+    <button class="btn btn-sm btn-primary" type="submit">Apply</button>
+  </form>
+</div>
+
+        <div class="grid grid-4">
+          <div class="card">
+            <h3>✅ Passed</h3>
+            <p>
+              <a
+                href="{{ url_for('main.jobSummary', jobType='SUCCESS') }}?date={{ selected_date }}"
+                title="Click to view all passed jobs"
+              >
+                {{ summary.passed }}
+              </a>
+            </p>
+          </div>
+          <div class="card">
+            <h3>❌ Failed</h3>
+            <p>
+                <a
+                href="{{ url_for('main.jobSummary', jobType='FAILURE') }}?date={{ selected_date }}"
+                title="Click to view all failed jobs"
+              >
+                {{ summary.failed }}
+              </a>
+            </p>
+          </div>
+          <div class="card">
+            <h3>⚠️ Aborted</h3>
+            <p>
+                <a
+                href="{{ url_for('main.jobSummary', jobType='ABORTED') }}?date={{ selected_date }}"
+                title="Click to view all aborted jobs"
+              >
+                {{ summary.aborted }}
+              </a>
+            </p>
+          </div>
+          <div class="card">
+            <h3>🔁 Total Runs</h3>
+            <p>{{ summary.total }}</p>
+          </div>
+        </div>
+        <div class="card outer-donut-wrapper" style="margin-top: 24px; padding: 24px;">
+          <div class="grid grid-3">
+            {% for region_key in regions %}
+            <div class="card">
+              <canvas id="chart-{{ region_key }}" height="220"></canvas>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="card" style="margin-top: 32px">
+            <h3>🕒 Recent Activity</h3>
+                <table class="activity-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Region</th>
+                            <th>Scenario</th>
+                            <th>Status</th>
+                            <th>Build</th>
+                            <th>Report</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for activity in recent_activity %}
+                        <tr>
+                            <td>{{ activity.time }}</td>
+                            <td>{{ activity.region }}</td>
+                            <td>{{ activity.job_name }}</td>
+                            <td class="
+                            {% if activity.result == 'SUCCESS' %}status-green
+                            {% elif activity.result == 'FAILURE' %}status-red
+                            {% else %}status-yellow
+                            {% endif %}
+                            ">
+                            {% if activity.result == 'SUCCESS' %}✔️ Passed
+                            {% elif activity.result == 'FAILURE' %}❌ Failed
+                            {% else %}⚠️ Aborted
+                            {% endif %}
+                            </td>
+                            <td><a class="link-btn" href="{{ activity.build_url }}" target="_blank">#{{ activity.build_number }}</a></td>
+                            <td><a class="link-btn" href="{{ activity.report_view }}" target="_blank">View</a></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+        </div>
+
+        <div class="grid grid-3" style="margin-top: 32px">
+          {% for region_key in regions %}
+          <div class="card">
+            <canvas id="trend-{{ region_key }}" height="220"></canvas>
+          </div>
+          {% endfor %}
+        </div>
+
+        <div class="card" style="margin-top: 32px">
+          <h3>🔥 Top Failing Scenarios</h3>
+          <table>
+            <thead>
+              <tr>
+                  <th>Scenario</th>
+                  <th>Fail Count</th>
+                  <th>Regions Affected</th>
+              </tr>
+            </thead>
+              <tbody>
+                {% for scenario in top_failing %}
+                    <tr>
+                    <td>{{ scenario.job_name }}</td>
+                    <td>{{ scenario.failures }}</td>
+                    <td>{{ scenario.regions | join(', ') }}</td>
+                    </tr>
+                {% endfor %}
+              </tbody>
+          </table>
+        </div>
+{% endblock %}
+{% block scripts %}
+<!-- First define your data -->
+<script>
+  const regionalData = {{ regional | tojson | safe }};
+  const regions_name = {{ regions | tojson | safe }};
+  const weeklyTrendData = {{ trend_regional | tojson | safe }};
+</script>
+
+<!-- Then load your dashboard-specific JS -->
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

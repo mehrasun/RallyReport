@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Try Again
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="alert alert-warning text-center" role="alert">
+      <h4 class="alert-heading">Invalid Date Selected</h4>
+      <p>Please select a date earlier than {{ date }}. You've selected a future date, and we don't have any Jenkins data for that day.</p>
+      <hr>
+      <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary mt-3">Go Back to Dashboard</a>
+    </div>
+  </div>
+{% endblock %}

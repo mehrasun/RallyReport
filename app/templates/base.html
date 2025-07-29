@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}{% endblock %}</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link
+      href="{{ url_for('static', filename='css/style.css') }}"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="wrapper">
+      <aside id="sidebar" class="js-sidebar">
+        <!-- Content For Sidebar -->
+        <div class="h-100 pt-4 pb-4 ">
+          <div class="sidebar-logo">
+            <a href="#">Rally Report Viewer</a>
+          </div>
+          <ul class="sidebar-nav d-flex flex-column flex-grow-1">
+            <li class="sidebar-item">
+              <a href="{{ url_for('main.dashboard') }}" class="sidebar-link">
+                <i class="bi bi-list-task pe-2"></i>
+                Dashboard
+              </a>
+            </li>
+            <li class="sidebar-item">
+              <a
+                href="#"
+                class="sidebar-link collapsed"
+                data-bs-target="#pages"
+                data-bs-toggle="collapse"
+                aria-expanded="false"
+              >
+                <i class="bi bi-file-earmark-text pe-2"></i> Region
+              </a>
+              <ul
+                id="pages"
+                class="sidebar-dropdown list-unstyled collapse"
+                data-bs-parent="#sidebar"
+              >
+                {% for region_code in regions %}
+                <li class="sidebar-item">
+                  <a
+                    href="{{ url_for('main.regionDashboard', region=region_code) }}"
+                    class="sidebar-link"
+                  >
+                    {{ region_code }}
+                  </a>
+                </li>
+                {% endfor %}
+              </ul>
+            </li>
+            <li class="sidebar-item">
+              <a
+                href="#"
+                class="sidebar-link collapsed"
+                data-bs-target="#posts"
+                data-bs-toggle="collapse"
+                aria-expanded="false"
+                ><i class="bi bi-sliders pe-2"></i>
+                Issues
+              </a>
+              <ul
+                id="posts"
+                class="sidebar-dropdown list-unstyled collapse"
+                data-bs-parent="#sidebar"
+              >
+                <li class="sidebar-item">
+                  <a href="#" class="sidebar-link">Active</a>
+                </li>
+                <li class="sidebar-item">
+                  <a href="#" class="sidebar-link">Closed</a>
+                </li>
+                <li class="sidebar-item">
+                  <a href="#" class="sidebar-link">History</a>
+                </li>
+                <li class="sidebar-item">
+                  <a href="#" class="sidebar-link">By Region</a>
+                </li>
+                <li class="sidebar-item">
+                  <a href="#" class="sidebar-link">By Scenario</a>
+                </li>
+                <li class="sidebar-item">
+                  <a href="#" class="sidebar-link">By Error Type</a>
+                </li>
+                <li class="sidebar-item">
+                  <a href="#" class="sidebar-link">Flagged</a>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </aside>
+      <div class="main">
+        <nav class="navbar navbar-expand px-0 border-bottom">
+          <button class="btn" id="sidebar-toggle" type="button">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+        </nav>
+         {% block content %}{% endblock %}
+
+        <div class="card-1" style="margin-top: 32px">
+          <h3>🚀 Quick Links</h3>
+          <a class="link-btn" href="http://10.22.226.66:32000" target="_blank">All Regions</a>
+          <a class="link-btn" href="http://10.22.226.66:32000" target="_blank">Jenkins</a>
+          <a class="link-btn" href="#">Settings</a>
+        </div>
+      </div>
+      <a href="#" class="theme-toggle">
+        <i class="bi bi-moon"></i>
+        <i class="bi bi-sun"></i>
+      </a>
+    </div>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+    <script src="{{ url_for('static', filename='js/base.js') }}"></script>
+  {% block scripts %}{% endblock %}
+  </body>
+</html>
