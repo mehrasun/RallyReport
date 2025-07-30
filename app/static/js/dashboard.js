@@ -1,13 +1,13 @@
 // Chart.JS
-const createDonutChart = (id, passed, failed, aborted) => {
+const createDonutChart = (id, passed, failed, aborted, inprogress) => {
   const chart = new Chart(document.getElementById(id), {
     type: "doughnut",
     data: {
-      labels: ["Passed", "Failed", "Aborted"],
+      labels: ["Passed", "Failed", "Aborted", "InProgress"],
       datasets: [
         {
-          data: [passed, failed, aborted],
-          backgroundColor: ["#10b981", "#ef4444", "#f59e0b"],
+          data: [passed, failed, aborted, inprogress],
+          backgroundColor: ["#10b981", "#ef4444", "#f59e0b", "#3b82f6"],
           borderWidth: 1,
         },
       ],
@@ -21,6 +21,7 @@ const createDonutChart = (id, passed, failed, aborted) => {
           color: isDarkTheme() ? "#f3f4f6" : "#1f2937",
         },
         legend: {
+          display: false,
           position: "bottom",
           labels: {
             color: isDarkTheme() ? "#f3f4f6" : "#1f2937",
@@ -118,41 +119,42 @@ if (regionalData) {
         `chart-${region}`, // Use the region name to dynamically set the ID
         regionalData[region].passed,
         regionalData[region].failed,
-        regionalData[region].aborted
+        regionalData[region].aborted,
+        regionalData[region].inprogress
       );
     }
   });
 }
 
 // Weekly trend line charts
-if (weeklyTrendData) {
-  Object.entries(weeklyTrendData).forEach(([region, dailyData]) => {
-  const dateKeys = Object.keys(dailyData);  // actual date keys like '2025-07-21'
-
-  const labels = dateKeys.map(dateStr => {
-    const [year, month, day] = dateStr.split("-").map(Number);
-    const date = new Date(year, month - 1, day);
-    return date.toLocaleDateString("en-US", { weekday: "short" });  // "Mon", "Tue", etc.
-  });
-
-  const passed = [];
-  const failed = [];
-  const aborted = [];
-
-  dateKeys.forEach(date => {
-    const value = dailyData[date];
-    if (value) {
-      passed.push(value.passed);
-      failed.push(value.failed);
-      aborted.push(value.aborted);
-    } else {
-      passed.push(0);
-      failed.push(0);
-      aborted.push(0);
-    }
-  });
-
-  createLineChart(`trend-${region}`, labels, passed, failed, aborted);
-});
-}
+//if (weeklyTrendData) {
+//  Object.entries(weeklyTrendData).forEach(([region, dailyData]) => {
+//  const dateKeys = Object.keys(dailyData);  // actual date keys like '2025-07-21'
+//
+//  const labels = dateKeys.map(dateStr => {
+//    const [year, month, day] = dateStr.split("-").map(Number);
+//    const date = new Date(year, month - 1, day);
+//    return date.toLocaleDateString("en-US", { weekday: "short" });  // "Mon", "Tue", etc.
+//  });
+//
+//  const passed = [];
+//  const failed = [];
+//  const aborted = [];
+//
+//  dateKeys.forEach(date => {
+//    const value = dailyData[date];
+//    if (value) {
+//      passed.push(value.passed);
+//      failed.push(value.failed);
+//      aborted.push(value.aborted);
+//    } else {
+//      passed.push(0);
+//      failed.push(0);
+//      aborted.push(0);
+//    }
+//  });
+//
+//  createLineChart(`trend-${region}`, labels, passed, failed, aborted);
+//});
+//}
 

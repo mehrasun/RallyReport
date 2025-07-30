@@ -1,6 +1,6 @@
 from requests.auth import HTTPBasicAuth
 from app.jenkins_config import USERNAME, PASSWORD
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 import requests
 
 auth = HTTPBasicAuth(USERNAME, PASSWORD) if USERNAME and PASSWORD else None
@@ -27,13 +27,11 @@ def get_build_date(timestamp):
     return dt.date()
 
 def fetch_latest_build(job_url, selected_date):
-    last_build_url = f"{job_url}lastBuild/api/json"
+    last_build_url = f"{job_url}lastBuild/api/json?tree=timestamp,result,building,url,number"
     response = requests.get(last_build_url, auth=auth)
     if response.status_code != 200:
         return None
     build_info = response.json()
-    if build_info.get("building"):
-        return None
     timestamp = build_info.get("timestamp")
     if not timestamp:
         return None
@@ -64,7 +62,7 @@ def get_latest_build_on_date(job_url, selected_date):
 
         for build in builds:
             build_number = build["number"]
-            build_api_url = f"{job_url}{build_number}/api/json"
+            build_api_url = f"{job_url}{build_number}/api/json?tree=timestamp,result,building,url,number"
             build_response = requests.get(build_api_url, auth=auth)
 
             if build_response.status_code != 200:

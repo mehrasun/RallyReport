@@ -1,11 +1,12 @@
 import requests
+import re
 from app.jenkins_config import JENKINS_URL, REGION_MAP
 from app.utils import auth, time_ago, fetch_latest_build, get_latest_build_on_date
 from app.jenkins_dashboard_service import get_build_date
 from datetime import datetime, timezone
 
 def fetch_build_data(build_url):
-    build_api_url = f"{build_url}api/json"
+    build_api_url = f"{build_url}api/json?tree=timestamp,result,building,url,number"
     response = requests.get(build_api_url, auth=auth)
     if response.status_code != 200:
         return None
@@ -80,7 +81,7 @@ def get_filtered_jobs(selected_date, status_filter=None, region=None):
         view_path = f"view/{meta['view']}"
         for folder_list in meta["folders"]:
             folder_path = "/".join([f"job/{f}" for f in folder_list])
-            api_url = f"{JENKINS_URL}/{view_path}/{folder_path}/api/json"
+            api_url = f"{JENKINS_URL}/{view_path}/{folder_path}/api/json?tree=jobs[name,url]"
             res = requests.get(api_url, auth=auth)
             if res.status_code != 200:
                 continue
@@ -96,13 +97,25 @@ def get_filtered_jobs(selected_date, status_filter=None, region=None):
                 if not latest_build:
                     continue
 
+                console_url = f"{latest_build['url']}consoleText"
+                response = requests.get(console_url, auth=auth)
+                if response.status_code == 200:
+                    console_output = response.text
+
+                    html_pattern = r"Generated HTML Report - (http[^\s]+)"
+                    report_match = re.search(html_pattern, console_output)
+                    if report_match:
+                        html_report = report_match.group(1)
+                    else:
+                        html_report = "Not Found"
+                else:
+                    html_report = "Not Found"
+
+
+
                 result = latest_build.get("result")
                 timestamp = latest_build["timestamp"] // 1000
                 build_datetime = datetime.fromtimestamp(timestamp, tz=timezone.utc)
-
-                # # ✅ Filter out if not today
-                # if build_datetime.date() != selected_date:
-                #     continue
 
                 # ✅ Filter by build result
                 if status_filter and result != status_filter:
@@ -148,7 +161,7 @@ def get_filtered_jobs(selected_date, status_filter=None, region=None):
                     "last_5": last_5,
                     "build_number": latest_build.get("number"),
                     "console_url": f"{latest_build['url']}console",
-                    "report_url": f"{latest_build['url']}artifact/report/index.html",
+                    "report_url": html_report,
                     "success_rate": success_rate
                 })
 

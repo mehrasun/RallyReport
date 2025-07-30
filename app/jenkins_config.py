@@ -46,9 +46,6 @@ JENKINS_URL = os.getenv("JENKINS_URL", "http://10.22.226.66:32000")
 USERNAME = os.getenv("JENKINS_USERNAME")  # may be None
 PASSWORD = os.getenv("JENKINS_PASSWORD")  # may be None
 
-# Authentication toggle
-# USE_AUTH = bool(USERNAME and PASSWORD)
-
 # ─────────────────────────────────────────────────────────────────────────────
 # 2.  Region map (must be provided via env‑var or file)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -71,39 +68,15 @@ else:                                                # Nothing supplied → erro
         "  • REGION_MAP_FILE   (path to a JSON file)"
     )
 
-OS_SERVICE = []
-
-if os.getenv("REGION_OS_SERVICE"):
-    try:
-        OS_SERVICE = json.loads(os.getenv("REGION_OS_SERVICE").strip())
-        if not isinstance(OS_SERVICE, list):
-            raise ValueError("REGION_OS_SERVICE must be a list")
-    except (json.JSONDecodeError, ValueError) as e:
-        raise RuntimeError(
-            f"Invalid REGION_OS_SERVICE format: {e}\n"
-            "Example of valid value: '[\"nova\", \"glance\", \"neutron\"]'"
-        )
-# ─────────────────────────────────────────────────────────────────────────────
-# 3.  Convenience helper for external modules
-# ─────────────────────────────────────────────────────────────────────────────
-# def jenkins_client():
-#     """
-#     Build and return a python‑jenkins Jenkins() instance using the
-#     current settings.  Anonymous connection if credentials are absent.
-#     """
-#     from jenkins import Jenkins  # lazy import to avoid hard dependency here
+# OS_SERVICE = []
 #
-#     if USE_AUTH:
-#         return Jenkins(
-#             JENKINS_URL,
-#             username=JENKINS_USERNAME,
-#             password=JENKINS_PASSWORD,
+# if os.getenv("REGION_OS_SERVICE"):
+#     try:
+#         OS_SERVICE = json.loads(os.getenv("REGION_OS_SERVICE").strip())
+#         if not isinstance(OS_SERVICE, list):
+#             raise ValueError("REGION_OS_SERVICE must be a list")
+#     except (json.JSONDecodeError, ValueError) as e:
+#         raise RuntimeError(
+#             f"Invalid REGION_OS_SERVICE format: {e}\n"
+#             "Example of valid value: '[\"nova\", \"glance\", \"neutron\"]'"
 #         )
-#     return Jenkins(JENKINS_URL)
-
-
-# # Optional: quick sanity print when run directly -----------------------------
-# if __name__ == "__main__":
-#     print("JENKINS_URL :", JENKINS_URL)
-#     print("USE_AUTH    :", USE_AUTH)
-#     print("REGION_MAP  :", REGION_MAP)

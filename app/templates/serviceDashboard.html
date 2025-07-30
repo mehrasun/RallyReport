@@ -71,74 +71,11 @@
             {% endfor %}
           </div>
 </div>
-
-<!--<div class="card mt-4 shadow-sm">-->
-<!--  <div class="card-header">-->
-<!--    <h5 class="mb-0">Job Runs</h5>-->
-<!--  </div>-->
-<!--  <div class="card-body p-0">-->
-<!--    <table class="table mb-0">-->
-<!--      <thead class="theme-table-header text-left align-middle fs-5">-->
-<!--        <tr>-->
-<!--          <th><i class="bi bi-cpu me-1"></i> Scenario</th>-->
-<!--          <th><i class="bi bi-clock me-1"></i> Last Run</th>-->
-<!--          <th><i class="bi bi-info-circle me-1"></i> Latest Status</th>-->
-<!--          <th><i class="bi bi-bar-chart-steps me-1"></i> Last 5 Builds</th>-->
-<!--          <th><i class="bi bi-terminal me-1"></i> Console Output</th>-->
-<!--          <th><i class="bi bi-file-earmark-code me-1"></i> HTML Report</th>-->
-<!--        </tr>-->
-<!--      </thead>-->
-<!--      <tbody>-->
-<!--        {% for job in region_jobs %}-->
-<!--        <tr>-->
-<!--          <td><strong>{{ job.name }}</strong></td>-->
-<!--          <td><small class="text-muted">{{ job.last_run }}</small></td>-->
-<!--          <td>-->
-<!--            {% if job.latest_build_status == "SUCCESS" %}-->
-<!--              <span class="badge bg-success">Success</span>-->
-<!--            {% elif job.latest_build_status == "FAILURE" %}-->
-<!--              <span class="badge bg-danger">Failure</span>-->
-<!--            {% elif job.latest_build_status == "ABORTED" %}-->
-<!--              <span class="badge bg-warning text-dark">Aborted</span>-->
-<!--            {% else %}-->
-<!--              <span class="badge bg-secondary">{{ job.latest_build_status }}</span>-->
-<!--            {% endif %}-->
-<!--          </td>-->
-<!--          <td>-->
-<!--            {% for status in job.last_5 %}-->
-<!--              {% if status == "SUCCESS" %}-->
-<!--                <span class="status-dot status-success" title="Success"></span>-->
-<!--              {% elif status == "FAILURE" %}-->
-<!--                <span class="status-dot status-fail" title="Failure"></span>-->
-<!--              {% elif status == "ABORTED" %}-->
-<!--                <span class="status-dot status-aborted" title="Aborted"></span>-->
-<!--              {% endif %}-->
-<!--            {% endfor %}-->
-<!--          </td>-->
-<!--          <td>-->
-<!--            <a href="{{ job.console_url }}" class="btn btn-sm btn-outline-primary" target="_blank">-->
-<!--              Build #{{ job.build_number }}-->
-<!--            </a>-->
-<!--          </td>-->
-<!--          <td>-->
-<!--            <a href="{{ job.report_url }}" class="btn btn-sm btn-outline-info" target="_blank">-->
-<!--              View Report-->
-<!--            </a>-->
-<!--          </td>-->
-<!--        </tr>-->
-<!--        {% endfor %}-->
-<!--      </tbody>-->
-<!--    </table>-->
-<!--  </div>-->
-<!--</div>-->
 {% endblock %}
 {% block scripts %}
 <script>
   const servicesData = {{ os_service_data | tojson | safe }};
   const servicesList = {{ os_service | tojson | safe }};
-  console.log(servicesList);
-  console.log(servicesData);
 </script>
-<!-- Then load your dashboard-specific JS -->
 <script src="{{ url_for('static', filename='js/serviceDashboard.js') }}"></script>
 {% endblock %}

@@ -353,7 +353,6 @@ html[data-bs-theme="dark"] .theme-table-header {
 
 .activity-table td, .activity-table th {
     padding: 12px 10px;
-    background: #fff;
     text-align: left;
     border: none;
     border-radius: 6px;

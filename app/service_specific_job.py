@@ -1,4 +1,5 @@
 import requests
+import re
 from app.jenkins_config import JENKINS_URL, REGION_MAP
 from app.utils import auth, time_ago, fetch_latest_build, get_latest_build_on_date
 from app.jenkins_dashboard_service import get_build_date
@@ -71,9 +72,7 @@ def get_services_specific_jobs(selected_date, view, folders):
     """
     job_details = []
     today_utc = datetime.now(timezone.utc).date()
-    # for region_key, meta in REGION_MAP.items():
     view_path = f"view/{view}"
-    # for folder_list in folders:
     folder_path = "/".join([f"job/{f}" for f in folders])
     api_url = f"{JENKINS_URL}/{view_path}/{folder_path}/api/json"
     response = requests.get(api_url, auth=auth)
@@ -90,6 +89,20 @@ def get_services_specific_jobs(selected_date, view, folders):
             return f"The date you have selected is a future data {selected_date}"
         if not latest_build:
             continue
+
+        console_url = f"{latest_build['url']}consoleText"
+        response = requests.get(console_url, auth=auth)
+        if response.status_code == 200:
+            console_output = response.text
+
+            html_pattern = r"Generated HTML Report - (http[^\s]+)"
+            report_match = re.search(html_pattern, console_output)
+            if report_match:
+                html_report = report_match.group(1)
+            else:
+                html_report = "Not Found"
+        else:
+            html_report = "Not Found"
 
         result = latest_build.get("result")
         timestamp = latest_build["timestamp"] // 1000
@@ -132,13 +145,12 @@ def get_services_specific_jobs(selected_date, view, folders):
 
         job_details.append({
             "job_name": job["name"],
-            # "region": region_key,
             "last_run": last_run_ago,
             "latest_build_status": result,
             "last_5": last_5,
             "build_number": latest_build.get("number"),
             "console_url": f"{latest_build['url']}console",
-            "report_url": f"{latest_build['url']}artifact/report/index.html",
+            "report_url": html_report,
             "success_rate": success_rate
         })
 
