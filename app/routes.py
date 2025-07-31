@@ -108,4 +108,5 @@ def service_jobs(region,service_name,selected_date):
 def weeklyTrend():
     selected_date = datetime.now(timezone.utc).date()
     weekly_data = fetch_weekly_data(selected_date)
+    print(weekly_data)
     return render_template("weeklyTrend.html", regions=regions_name, trend_regional = weekly_data["trend_data"])
