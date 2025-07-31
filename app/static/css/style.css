@@ -37,6 +37,7 @@ h4 {
   height: 100vh;     /* Full viewport height */
   overflow: hidden;  /* Prevent scroll on body */
   width: 100%;
+  flex: 1;
 }
 
 #sidebar {
@@ -357,4 +358,10 @@ html[data-bs-theme="dark"] .theme-table-header {
     border: none;
     border-radius: 6px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* subtle row shadow */
+}
+
+.custom-footer {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  font-size: 1rem; /* increase font size */
 }
