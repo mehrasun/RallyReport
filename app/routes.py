@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from app.jenkins_job_service import get_filtered_jobs
 from app.service_specific_job import get_services_specific_jobs
 from app.weeklyDashboard import fetch_weekly_data
+from app.cache import cache
 
 main = Blueprint("main", __name__)
 regions_name = list(REGION_MAP.keys())
@@ -63,6 +64,7 @@ def regionDashboard(region):
     )
 
 @main.route("/jobSummary/<jobType>", methods=["GET"])
+@cache.cached(timeout=300, query_string=True) 
 def jobSummary(jobType):
     jobType = jobType.upper()
     selected_date = datetime.now(timezone.utc).date()
