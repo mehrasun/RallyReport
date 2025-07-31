@@ -4,6 +4,7 @@ from app.jenkins_config import JENKINS_URL, REGION_MAP
 from app.utils import auth, time_ago, fetch_latest_build, get_latest_build_on_date
 from app.jenkins_dashboard_service import get_build_date
 from datetime import datetime, timezone
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 def fetch_build_data(build_url):
     build_api_url = f"{build_url}api/json?tree=timestamp,result,building,url,number"
@@ -64,18 +65,23 @@ def fetch_builds(job_url, selected_date):
         print(f"Error in fetch_builds(): {e}")
         return []
 
-def get_filtered_jobs(selected_date, status_filter=None, region=None):
-    """
-    Get jobs across all regions filtered by status for today.
-    - status_filter: "SUCCESS", "FAILURE", "ABORTED", or None for all
-    """
+
+
+def get_filtered_jobs(selected_date, status_filter=None, region=None, max_workers=10):
     job_details = []
     today_utc = datetime.now(timezone.utc).date()
-    if region:
-        region_values = {region: REGION_MAP.get(region)}
-    else:
-        region_values = REGION_MAP
+    region_values = {region: REGION_MAP.get(region)} if region else REGION_MAP
 
+    def get_html_report(build_url):
+        console_url = f"{build_url}consoleText"
+        try:
+            response = requests.get(console_url, auth=auth, timeout=5)
+            if response.status_code == 200:
+                match = re.search(r"Generated HTML Report - (http[^\s]+)", response.text)
+                return match.group(1) if match else "Not Found"
+        except:
+            pass
+        return "Not Found"
 
     for region_key, meta in region_values.items():
         view_path = f"view/{meta['view']}"
@@ -86,59 +92,47 @@ def get_filtered_jobs(selected_date, status_filter=None, region=None):
             if res.status_code != 200:
                 continue
 
-            jobs = res.json().get("jobs", [])
-            for job in jobs:
-                if selected_date == today_utc:
-                    latest_build = fetch_latest_build(job["url"], selected_date)
-                elif selected_date < today_utc:
-                    latest_build = get_latest_build_on_date(job["url"], selected_date)
-                else:
-                    return f"The date you have selected is a future data {selected_date}"
+            for job in res.json().get("jobs", []):
+                if selected_date > today_utc:
+                    return f"The date you selected is in the future: {selected_date}"
+
+                latest_build = (
+                    fetch_latest_build(job["url"], selected_date)
+                    if selected_date == today_utc
+                    else get_latest_build_on_date(job["url"], selected_date)
+                )
                 if not latest_build:
                     continue
-
-                console_url = f"{latest_build['url']}consoleText"
-                response = requests.get(console_url, auth=auth)
-                if response.status_code == 200:
-                    console_output = response.text
-
-                    html_pattern = r"Generated HTML Report - (http[^\s]+)"
-                    report_match = re.search(html_pattern, console_output)
-                    if report_match:
-                        html_report = report_match.group(1)
-                    else:
-                        html_report = "Not Found"
-                else:
-                    html_report = "Not Found"
-
-
 
                 result = latest_build.get("result")
                 timestamp = latest_build["timestamp"] // 1000
                 build_datetime = datetime.fromtimestamp(timestamp, tz=timezone.utc)
 
-                # ✅ Filter by build result
                 if status_filter and result != status_filter:
                     continue
 
                 last_run_ago = time_ago(build_datetime, timezone.utc)
 
-                # ✅ Process all builds to calculate success rate
+                # Parallelize fetching all builds on the selected date
                 builds = fetch_builds(job["url"], selected_date)
                 last_5 = []
                 date_success = 0
                 date_total = 0
 
-                for b in builds:
-                    b_data = fetch_build_data(b["url"])
-                    if not b_data:
-                        continue
+                build_data_list = []
 
-                    # Collect for last_5 status display
+                with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                    futures = {executor.submit(fetch_build_data, b["url"]): b for b in builds}
+                    for future in as_completed(futures):
+                        b_data = future.result()
+                        if not b_data:
+                            continue
+                        build_data_list.append(b_data)
+
+                for b_data in build_data_list:
                     if len(last_5) < 5:
                         last_5.append(b_data.get("result", "N/A"))
 
-                    # Count today's builds
                     b_ts = b_data["timestamp"] // 1000
                     b_date = datetime.fromtimestamp(b_ts, tz=timezone.utc).date()
                     if b_date == selected_date:
@@ -146,11 +140,14 @@ def get_filtered_jobs(selected_date, status_filter=None, region=None):
                         if b_data.get("result") == "SUCCESS":
                             date_success += 1
 
-                # ✅ Skip job if no builds ran today
                 if date_total == 0:
                     continue
 
-                # ✅ Calculate success rate
+                # Fetch console output in parallel (if needed)
+                html_report = "Not Found"
+                if result:  # You can add more logic here
+                    html_report = get_html_report(latest_build["url"])
+
                 success_rate = round((date_success / date_total) * 100)
 
                 job_details.append({
@@ -162,7 +159,7 @@ def get_filtered_jobs(selected_date, status_filter=None, region=None):
                     "build_number": latest_build.get("number"),
                     "console_url": f"{latest_build['url']}console",
                     "report_url": html_report,
-                    "success_rate": success_rate
+                    "success_rate": success_rate,
                 })
 
     return job_details
