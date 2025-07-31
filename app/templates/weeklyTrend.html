@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Weekly Trend Data Rally
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">📈 Rally Weekly Dashboard</h1>
+</div>
+
+<div class="grid grid-3" style="margin-top: 32px">
+          {% for region_key in regions %}
+          <div class="card">
+            <canvas id="trend-{{ region_key }}" height="220"></canvas>
+          </div>
+          {% endfor %}
+</div>
+
+{% endblock %}
+{% block scripts %}
+<!-- First define your data -->
+<script>
+  const regions_name = {{ regions | tojson | safe }};
+  const weeklyTrendData = {{ trend_regional | tojson | safe }};
+</script>
+
+<!-- Then load your dashboard-specific JS -->
+<script src="{{ url_for('static', filename='js/weeklyTrendDashboard.js') }}"></script>
+{% endblock %}

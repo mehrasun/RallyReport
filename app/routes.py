@@ -1,10 +1,11 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, jsonify
 from app.jenkins_dashboard_service import fetch_jenkins_data
 from app.jenkins_region_service import fetch_region_jobs
 from app.jenkins_config import REGION_MAP
 from datetime import datetime, timezone
 from app.jenkins_job_service import get_filtered_jobs
 from app.service_specific_job import get_services_specific_jobs
+from app.weeklyDashboard import fetch_weekly_data
 
 main = Blueprint("main", __name__)
 regions_name = list(REGION_MAP.keys())
@@ -53,6 +54,7 @@ def regionDashboard(region):
         os_service_jobs_data[service] = jobs
     return render_template(
         "serviceDashboard.html",
+        regions=regions_name,
         daily_summary=daily_summary,
         region_name=region.upper(),
         os_service=openstack_service,
@@ -101,3 +103,9 @@ def service_jobs(region,service_name,selected_date):
     service_selected_date = datetime.strptime(selected_date_str, "%Y-%m-%d").date()
     region_jobs = get_services_specific_jobs(service_selected_date, view, matched_folder)
     return render_template("jobSummary.html", jobType=service_name, jobs=region_jobs, regions=regions_name)
+
+@main.route("/weeklyTrend", methods=["GET"])
+def weeklyTrend():
+    selected_date = datetime.now(timezone.utc).date()
+    weekly_data = fetch_weekly_data(selected_date)
+    return render_template("weeklyTrend.html", regions=regions_name, trend_regional = weekly_data["trend_data"])

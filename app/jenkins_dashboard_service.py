@@ -88,7 +88,6 @@ def fetch_jenkins_data():
                 recent_activity_job['report_view'] = "Not Found"
         else:
             recent_activity_job['report_view'] = "Not Found"
-    print(recent_activity)
     top_failing_scenarios = [
         {
             "job_name": name,
